@@ -92,8 +92,7 @@ public class ExchangeRateReader {
     public float getExchangeRate(String currencyCode, int year, int month, int day) throws IOException {
         SimpleDateFormat sd1 = new SimpleDateFormat("yyyy-MM-dd");
         String requestAppend = sd1.format(new Date(year-1900,month-1,day));
-        //requestAppend += ("?access_key=") + (accessKey);
-        //requestAppend += ("&symbols=") + (currencyCode);
+        requestAppend += ("?access_key=") + (accessKey);
 
         String urlString = baseURL + requestAppend;
         URL url = new URL(urlString);
@@ -125,16 +124,14 @@ public class ExchangeRateReader {
             int year, int month, int day) throws IOException {
         SimpleDateFormat sd1 = new SimpleDateFormat("yyyy-MM-dd");
         String requestAppend = sd1.format(new Date(year-1900,month-1,day));
-        //requestAppend += ("?access_key=") + (accessKey);
-        //requestAppend += "&base=" +fromCurrency;
-        //requestAppend += ("&symbols=") + (toCurrency);
+        requestAppend += ("?access_key=") + (accessKey);
 
         String urlString = baseURL + requestAppend;
         URL url = new URL(urlString);
         InputStream inputStream = url.openStream();
         Reader reader = new InputStreamReader(inputStream);
         JsonObject object = new JsonParser().parse(reader).getAsJsonObject();
-        return getRate(object, toCurrency);
+        return (getRate(object, fromCurrency) / getRate(object, toCurrency));
     }
 
     public float getRate(JsonObject ratesInfo, String currency) {
