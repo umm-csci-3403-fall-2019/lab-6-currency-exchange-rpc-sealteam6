@@ -1,7 +1,16 @@
 package xrate;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
 import java.io.*;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -10,7 +19,7 @@ import java.util.Properties;
 public class ExchangeRateReader {
 
     private String accessKey;
-
+    private String baseURL;
     /**
      * Construct an exchange rate reader using the given base URL. All requests
      * will then be relative to that URL. If, for example, your source is Xavier
@@ -30,8 +39,7 @@ public class ExchangeRateReader {
          * provided `baseURL` in a field so it will be accessible later.
          */
 
-        // TODO Your code here
-
+        this.baseURL = baseURL;
         // Reads the access keys from `etc/access_keys.properties`
         readAccessKeys();
     }
@@ -82,10 +90,17 @@ public class ExchangeRateReader {
      * @throws IOException if there are problems reading from the server
      */
     public float getExchangeRate(String currencyCode, int year, int month, int day) throws IOException {
-        // TODO Your code here
+        SimpleDateFormat sd1 = new SimpleDateFormat("yyyy-MM-dd");
+        String requestAppend = sd1.format(new Date(year-1900,month-1,day));
+        //requestAppend += ("?access_key=") + (accessKey);
+        //requestAppend += ("&symbols=") + (currencyCode);
 
-        // Remove the next line when you've implemented this method.
-        throw new UnsupportedOperationException();
+        String urlString = baseURL + requestAppend;
+        URL url = new URL(urlString);
+        InputStream inputStream = url.openStream();
+        Reader reader = new InputStreamReader(inputStream);
+        JsonObject object = new JsonParser().parse(reader).getAsJsonObject();
+        return getRate(object, currencyCode);
     }
 
     /**
@@ -108,9 +123,21 @@ public class ExchangeRateReader {
     public float getExchangeRate(
             String fromCurrency, String toCurrency,
             int year, int month, int day) throws IOException {
-        // TODO Your code here
+        SimpleDateFormat sd1 = new SimpleDateFormat("yyyy-MM-dd");
+        String requestAppend = sd1.format(new Date(year-1900,month-1,day));
+        //requestAppend += ("?access_key=") + (accessKey);
+        //requestAppend += "&base=" +fromCurrency;
+        //requestAppend += ("&symbols=") + (toCurrency);
 
-        // Remove the next line when you've implemented this method.
-        throw new UnsupportedOperationException();
+        String urlString = baseURL + requestAppend;
+        URL url = new URL(urlString);
+        InputStream inputStream = url.openStream();
+        Reader reader = new InputStreamReader(inputStream);
+        JsonObject object = new JsonParser().parse(reader).getAsJsonObject();
+        return getRate(object, toCurrency);
+    }
+
+    public float getRate(JsonObject ratesInfo, String currency) {
+        return ratesInfo.getAsJsonObject("rates").get(currency).getAsFloat();
     }
 }
